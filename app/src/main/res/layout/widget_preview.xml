@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shown in the Android 12+ widget picker. Same look as the real widget. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    style="@style/WidgetRoot">
+
+    <TextView
+        style="@style/WidgetLevelText"
+        android:text="@string/widget_preview_text" />
+
+</FrameLayout>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Battery Widget</string>
+    <string name="widget_name">Battery %</string>
+    <string name="widget_description">Battery level in big digits. Uses almost no power.</string>
+    <string name="widget_placeholder" translatable="false">…</string>
+    <string name="widget_preview_text" translatable="false">87%</string>
+
+    <string name="battery_desc">Battery %1$d percent</string>
+    <string name="battery_desc_plugged">Battery %1$d percent, charger connected</string>
+    <string name="battery_unknown">Battery level unknown</string>
+
+    <string name="status_battery">On battery</string>
+    <string name="status_plugged">Charger connected</string>
+
+    <string name="add_widget">Add widget to home screen</string>
+    <string name="add_widget_manual">Long-press the home screen, tap Widgets, and find Battery Widget.</string>
+
+    <string name="help_title">How it works</string>
+    <string name="help_text">• The widget shows the battery level in percent, in big digits. It is the size of one app icon. You can resize it; the digits grow with it.\n\n• White = on battery. Green = charger connected. Red = 15% or less.\n\n• Tap the widget to refresh it now.\n\n• To save power, the widget never wakes the phone. It refreshes every 15 minutes while the phone is awake (every 2 minutes on the charger). If a refresh came due while the phone was asleep, it runs as soon as the phone wakes up.\n\n• After you connect or remove the charger, the color changes at the next refresh. Tap the widget to see it at once.\n\n• It also refreshes when you leave this screen.</string>
+</resources>

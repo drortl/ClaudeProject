@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The root uses @android:id/background so Android 12+ can use it for the
+     widget launch animation and rounded clipping. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    style="@style/WidgetRoot">
+
+    <TextView
+        android:id="@+id/level"
+        style="@style/WidgetLevelText"
+        android:text="@string/widget_placeholder" />
+
+</FrameLayout>

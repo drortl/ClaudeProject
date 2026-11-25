@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark, mostly opaque plate: white digits stay readable on any wallpaper. -->
+    <color name="widget_background">#B3000000</color>
+
+    <color name="level_normal">#FFFFFFFF</color>
+    <color name="level_charging">#FF7CE38B</color>
+    <color name="level_low">#FFFF6B6B</color>
+
+    <color name="ic_launcher_background">#FF1E2A38</color>
+    <color name="ic_launcher_level">#FF7CE38B</color>
+</resources>
