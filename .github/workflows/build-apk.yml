@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,10 +25,35 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug assembleRelease
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-release.apk out/SensorReceiver.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: SensorReceiver-apk
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/release/*.apk
+          path: out/SensorReceiver.apk
+
+      # Latest APK as a GitHub Release: open the repo's Releases page on the phone and tap it.
+      - name: Publish release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="sensor-receiver-latest"
+          gh release delete "$TAG" --yes --cleanup-tag || true
+          gh release create "$TAG" out/SensorReceiver.apk \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "Sensor Receiver (latest build)" \
+            --notes "Built from ${GITHUB_SHA::7}. Download SensorReceiver.apk on the phone and tap it to install."
+
+      # Also keep the APK on a branch, so it can be fetched with plain git.
+      - name: Save APK to apk-builds branch
+        if: github.event_name != 'pull_request'
+        run: |
+          cd out
+          git init -q -b apk-builds
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add SensorReceiver.apk
+          git commit -q -m "APK from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" apk-builds
