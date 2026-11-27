@@ -89,3 +89,20 @@ saving) stop background work of apps more strictly than stock Android. If the
 number stops updating on such a phone, set Battery Widget to "Unrestricted" /
 "No restrictions" in the app's battery settings. This does not make it use
 more power; it only lets the planned refresh run.
+
+## Android emulator test (GitHub Actions)
+
+Every push to `main` builds the APK and runs it on two Android emulators, Android 14 (API 34) and
+Android 8.0 (API 26). `.github/scripts/emulator-smoke-test.sh` installs the app, opens it, rotates the
+screen, and opens it again without permissions; any crash or freeze fails the run. Screenshots and
+logcat are saved with each run. Emulators have no real Bluetooth, ANT+ or sensors.
+
+Other Android repos can reuse it:
+
+```yaml
+jobs:
+  test:
+    uses: drortl/ClaudeProject/.github/workflows/android-emulator-test.yml@main
+    with:
+      app-id: com.example.myapp
+```

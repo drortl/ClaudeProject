@@ -1,0 +1,112 @@
+# Reusable Android build + emulator smoke test.
+# Builds the APK, then installs and runs it on two emulators:
+# Android 14 (API 34, current) and Android 8.0 (API 26, legacy).
+#
+# In another repo, call it like this:
+#
+#   jobs:
+#     test:
+#       uses: drortl/ClaudeProject/.github/workflows/android-emulator-test.yml@main
+#       with:
+#         app-id: com.example.myapp
+#
+# Pushing to this repo runs it on the battery widget.
+name: Android emulator test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      app-id:
+        description: applicationId of the app (package name)
+        required: true
+        type: string
+      gradle-task:
+        description: Gradle task that builds the APK
+        required: false
+        type: string
+        default: assembleDebug
+      apk-glob:
+        description: Where the built APK ends up
+        required: false
+        type: string
+        default: app/build/outputs/apk/debug/*.apk
+      api-levels:
+        description: JSON list of Android API levels to test on
+        required: false
+        type: string
+        default: '[34, 26]'
+
+env:
+  APP_ID: ${{ inputs.app-id || 'com.drortl.batterywidget' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon ${{ inputs.gradle-task || 'assembleDebug' }}
+          mkdir -p out
+          cp $(ls ${{ inputs.apk-glob || 'app/build/outputs/apk/debug/*.apk' }} | head -1) out/app.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-apk
+          path: out/app.apk
+
+  emulator-test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level: ${{ fromJSON(inputs.api-levels || '[34, 26]') }}
+    steps:
+      # The test script lives in ClaudeProject; fetch it when called from another repo.
+      - uses: actions/checkout@v4
+        with:
+          repository: drortl/ClaudeProject
+          ref: main
+          path: _smoke
+          sparse-checkout: .github/scripts
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-apk
+          path: out
+
+      - name: Enable KVM (hardware acceleration for the emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Smoke test on Android API ${{ matrix.api-level }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash _smoke/.github/scripts/emulator-smoke-test.sh out/app.apk ${{ env.APP_ID }} 15
+
+      - name: Keep screenshots and logcat
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-results-api${{ matrix.api-level }}
+          path: |
+            smoke-*.png
+            smoke-logcat.txt
+          if-no-files-found: ignore
