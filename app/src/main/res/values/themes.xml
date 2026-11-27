@@ -1,0 +1,44 @@
+<resources>
+    <style name="Theme.SensorRx" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="colorPrimary">@color/accent</item>
+    </style>
+
+    <style name="Tile">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@drawable/tile_bg</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+    </style>
+    <style name="TileLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.08</item>
+    </style>
+    <style name="TileValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">64sp</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+    <style name="TileSource">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/muted</item>
+    </style>
+    <style name="ActionButton" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">6dp</item>
+    </style>
+</resources>

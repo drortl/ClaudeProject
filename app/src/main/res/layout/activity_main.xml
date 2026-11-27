@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Heart rate -->
+        <LinearLayout style="@style/Tile">
+            <TextView style="@style/TileLabel" android:text="HEART RATE  ·  bpm" android:textColor="@color/hr" />
+            <TextView android:id="@+id/hrValue" style="@style/TileValue" android:text="--" />
+            <TextView android:id="@+id/hrSource" style="@style/TileSource" android:text="no data" />
+        </LinearLayout>
+
+        <!-- Speed -->
+        <LinearLayout style="@style/Tile">
+            <TextView style="@style/TileLabel" android:text="SPEED  ·  km/h" android:textColor="@color/speed" />
+            <TextView android:id="@+id/speedValue" style="@style/TileValue" android:text="--" />
+            <TextView android:id="@+id/speedSource" style="@style/TileSource" android:text="no data" />
+        </LinearLayout>
+
+        <!-- Cadence -->
+        <LinearLayout style="@style/Tile">
+            <TextView style="@style/TileLabel" android:text="CADENCE  ·  rpm" android:textColor="@color/cadence" />
+            <TextView android:id="@+id/cadenceValue" style="@style/TileValue" android:text="--" />
+            <TextView android:id="@+id/cadenceSource" style="@style/TileSource" android:text="no data" />
+        </LinearLayout>
+
+        <!-- Distance -->
+        <LinearLayout
+            style="@style/Tile"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView style="@style/TileLabel" android:text="DISTANCE" android:textColor="@color/muted" />
+                <TextView
+                    android:id="@+id/distanceValue"
+                    style="@style/TileValue"
+                    android:text="0.00 km"
+                    android:textSize="32sp" />
+            </LinearLayout>
+            <Button
+                android:id="@+id/btnResetDistance"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reset" />
+        </LinearLayout>
+
+        <!-- Recording -->
+        <Button
+            android:id="@+id/btnRecord"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="4dp"
+            android:text="●  Start recording"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/recordInfo"
+            style="@style/TileSource"
+            android:layout_width="match_parent"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp" />
+
+        <Button
+            android:id="@+id/btnShare"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Share last log (CSV)" />
+
+        <!-- Connect -->
+        <TextView
+            style="@style/TileLabel"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="6dp"
+            android:text="BLUETOOTH"
+            android:textColor="@color/muted" />
+
+        <Button
+            android:id="@+id/btnBleScan"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Scan &amp; connect Bluetooth sensor" />
+
+        <TextView
+            style="@style/TileLabel"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="6dp"
+            android:text="ANT+"
+            android:textColor="@color/muted" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button android:id="@+id/btnAntHr" style="@style/ActionButton" android:text="HR" />
+            <Button android:id="@+id/btnAntSpeed" style="@style/ActionButton" android:text="Speed" />
+            <Button
+                android:id="@+id/btnAntCadence"
+                style="@style/ActionButton"
+                android:layout_marginEnd="0dp"
+                android:text="Cadence" />
+        </LinearLayout>
+
+        <!-- Status -->
+        <TextView
+            style="@style/TileLabel"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="6dp"
+            android:text="CONNECTIONS"
+            android:textColor="@color/muted" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/tile_bg"
+            android:fontFamily="monospace"
+            android:padding="12dp"
+            android:text="No sensors connected"
+            android:textColor="@color/text"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btnDisconnect"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="Disconnect all" />
+
+        <!-- Settings -->
+        <TextView
+            style="@style/TileLabel"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:text="WHEEL CIRCUMFERENCE (mm)"
+            android:textColor="@color/muted" />
+
+        <EditText
+            android:id="@+id/wheelInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="2105"
+            android:importantForAutofill="no"
+            android:inputType="number"
+            android:maxLength="4"
+            android:textColor="@color/text" />
+
+        <TextView
+            style="@style/TileSource"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="24dp"
+            android:text="700x25c ≈ 2105 · 700x28c ≈ 2136 · 29x2.2 ≈ 2313. For ANT+ speed, reconnect after changing." />
+    </LinearLayout>
+</ScrollView>
