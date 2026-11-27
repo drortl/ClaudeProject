@@ -37,11 +37,17 @@ jobs:
           name: SensorReceiver-apk
           path: out/SensorReceiver.apk
 
-  # 2. Install and run on an Android emulator ------------------------------
+  # 2. Install and run on Android emulators (newest + oldest supported) ----
   emulator-test:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api-level: 34   # Android 14 (current)
+          - api-level: 26   # Android 8.0 (legacy, = minSdk)
     steps:
       - uses: actions/checkout@v4
 
@@ -56,10 +62,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run smoke test on emulator (Android 14)
+      - name: Run smoke test on emulator (API ${{ matrix.api-level }})
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: ${{ matrix.api-level }}
           target: google_apis
           arch: x86_64
           disable-animations: true
@@ -70,7 +76,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: emulator-test-results
+          name: emulator-test-results-api${{ matrix.api-level }}
           path: |
             smoke-*.png
             smoke-logcat.txt

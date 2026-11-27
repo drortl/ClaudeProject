@@ -19,7 +19,8 @@ done_() { echo "::endgroup::"; }
 
 check_alive() {
   local stage="$1"
-  if ! adb shell pidof "$PKG" >/dev/null 2>&1; then
+  # pidof is missing on some older Android images, so fall back to ps
+  if ! adb shell pidof "$PKG" >/dev/null 2>&1 && ! adb shell ps -A 2>/dev/null | grep -q "$PKG"; then
     echo "::error::[$stage] app process is not running"
     FAILED=1
   fi
