@@ -46,15 +46,18 @@ class RecordingService : Service() {
         createChannel()
         ServiceCompat.startForeground(
             this, NOTIF_ID, buildNotification("Recording…"),
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE else 0,
+            foregroundTypes(),
         )
 
         val dir = logDir(this)
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val file = File(dir, "ride_$stamp.csv")
         writer = FileWriter(file).apply {
-            write("time,elapsed_s,heart_rate_bpm,speed_kmh,cadence_rpm,distance_m,hr_source,speed_source,cadence_source\n")
+            write(
+                "time,elapsed_s,heart_rate_bpm,speed_kmh,cadence_rpm,distance_m," +
+                    "sensor_speed_kmh,gps_speed_kmh,lat,lon,alt_m,gps_accuracy_m," +
+                    "hr_source,speed_source,cadence_source\n",
+            )
         }
         currentFile = file
         startedAt = SystemClock.elapsedRealtime()
@@ -80,15 +83,22 @@ class RecordingService : Service() {
     private fun writeRow() {
         val w = writer ?: return
         val hr = SensorHub.current(Metric.HEART_RATE)
-        val sp = SensorHub.current(Metric.SPEED)
+        val sp = SensorHub.bestSpeed()
+        val sensorSp = SensorHub.current(Metric.SPEED)
+        val gpsSp = SensorHub.current(Metric.GPS_SPEED)
+        val fix = SensorHub.currentFix()
         val cad = SensorHub.current(Metric.CADENCE)
         val elapsed = (SystemClock.elapsedRealtime() - startedAt) / 1000.0
         val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(Date())
         fun num(r: Reading?, digits: Int) = r?.let { String.format(Locale.US, "%.${digits}f", it.value) } ?: ""
         fun src(r: Reading?) = r?.let { "${it.link}:${it.deviceName.replace(',', ' ')}" } ?: ""
+        fun f(x: Double?, digits: Int) = x?.let { String.format(Locale.US, "%.${digits}f", it) } ?: ""
         w.write(
             "$time,${String.format(Locale.US, "%.0f", elapsed)},${num(hr, 0)},${num(sp, 1)},${num(cad, 0)}," +
-                "${String.format(Locale.US, "%.0f", SensorHub.distanceMeters)},${src(hr)},${src(sp)},${src(cad)}\n",
+                "${String.format(Locale.US, "%.0f", SensorHub.distanceMeters)}," +
+                "${num(sensorSp, 1)},${num(gpsSp, 1)},${f(fix?.lat, 6)},${f(fix?.lon, 6)}," +
+                "${f(fix?.altM, 0)},${f(fix?.accuracyM?.toDouble(), 0)}," +
+                "${src(hr)},${src(sp)},${src(cad)}\n",
         )
         rows++
         if (rows % 10 == 0) {
@@ -107,6 +117,17 @@ class RecordingService : Service() {
         wakeLock?.let { if (it.isHeld) it.release() }
         isRecording = false
         super.onDestroy()
+    }
+
+    /** Location type only when permission is granted, or Android 14+ refuses to start. */
+    private fun foregroundTypes(): Int {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return 0
+        var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+        val gpsAllowed = androidx.core.content.ContextCompat.checkSelfPermission(
+            this, android.Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (gpsAllowed) types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        return types
     }
 
     private fun createChannel() {

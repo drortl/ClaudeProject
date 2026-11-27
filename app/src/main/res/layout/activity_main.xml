@@ -23,6 +23,11 @@
             <TextView style="@style/TileLabel" android:text="SPEED  ·  km/h" android:textColor="@color/speed" />
             <TextView android:id="@+id/speedValue" style="@style/TileValue" android:text="--" />
             <TextView android:id="@+id/speedSource" style="@style/TileSource" android:text="no data" />
+            <TextView
+                android:id="@+id/gpsLine"
+                style="@style/TileSource"
+                android:layout_marginTop="4dp"
+                android:text="GPS: waiting for fix…" />
         </LinearLayout>
 
         <!-- Cadence -->

@@ -11,6 +11,7 @@ Tested sensor targets: Garmin HRM 600 (HR), Magene speed and cadence sensors (du
 - Recording runs as a foreground service (keeps going with the screen off) and writes one row per second:
   `time, elapsed_s, heart_rate_bpm, speed_kmh, cadence_rpm, distance_m, hr_source, speed_source, cadence_source`
 - Logs are saved in `Android/data/com.dror.sensorrx/files/logs/` and can be shared from the app.
+- GPS speed runs alongside the sensors: the speed tile uses the wheel sensor when it is sending and switches to GPS automatically when it is not (distance too). The log has both speeds plus position.
 - Adjustable wheel circumference (default 2105 mm).
 
 ## Build

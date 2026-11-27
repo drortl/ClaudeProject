@@ -5,8 +5,11 @@ import android.os.Looper
 import android.os.SystemClock
 import java.util.concurrent.CopyOnWriteArrayList
 
-enum class Metric { HEART_RATE, SPEED, CADENCE }
-enum class Link { ANT, BLE }
+enum class Metric { HEART_RATE, SPEED, CADENCE, GPS_SPEED }
+enum class Link { ANT, BLE, GPS }
+
+/** Last GPS fix, for the log. */
+data class GpsFix(val lat: Double, val lon: Double, val altM: Double?, val accuracyM: Float?)
 
 /** Latest reading of one metric. speed is km/h, cadence rpm, heart rate bpm. */
 data class Reading(
@@ -28,6 +31,15 @@ object SensorHub {
     @Volatile var distanceMeters: Double = 0.0
         private set
     @Volatile var wheelCircumferenceMm: Int = 2105
+    @Volatile var gpsFix: GpsFix? = null
+    @Volatile var gpsFixAtMillis: Long = 0L
+
+    /** Speed to show: the wheel sensor when it is sending, otherwise GPS. */
+    fun bestSpeed(): Reading? = current(Metric.SPEED) ?: current(Metric.GPS_SPEED)
+
+    /** Fresh GPS position, or null when none arrived within [STALE_MS]. */
+    fun currentFix(): GpsFix? =
+        if (SystemClock.elapsedRealtime() - gpsFixAtMillis <= STALE_MS) gpsFix else null
 
     private val statusLines = java.util.concurrent.ConcurrentHashMap<String, String>()
     private val listeners = CopyOnWriteArrayList<() -> Unit>()

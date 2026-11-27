@@ -24,6 +24,7 @@ import java.util.Locale
 object Sensors {
     lateinit var ble: BleSensorManager
     lateinit var ant: AntSensorManager
+    lateinit var gps: GpsTracker
     var onAntMissing: ((String, String) -> Unit)? = null
     private var ready = false
 
@@ -31,6 +32,7 @@ object Sensors {
         if (ready) return
         ble = BleSensorManager(context)
         ant = AntSensorManager { name, pkg -> onAntMissing?.invoke(name, pkg) }
+        gps = GpsTracker(context)
         ready = true
     }
 }
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            startGpsIfAllowed()
             if (hasBlePermissions() && !didAutoReconnect) {
                 didAutoReconnect = true
                 Sensors.ble.reconnectSaved()
@@ -102,6 +105,7 @@ class MainActivity : AppCompatActivity() {
         if (isFinishing && !RecordingService.isRecording) {
             Sensors.ble.disconnectAll()
             Sensors.ant.disconnectAll()
+            Sensors.gps.stop()
         }
         super.onDestroy()
     }
@@ -121,7 +125,20 @@ class MainActivity : AppCompatActivity() {
             source.text = r?.let { "${if (it.link == Link.ANT) "ANT+" else "BT"} · ${it.deviceName}" } ?: "no data"
         }
         show(Metric.HEART_RATE, 0, b.hrValue, b.hrSource)
-        show(Metric.SPEED, 1, b.speedValue, b.speedSource)
+        // Speed: wheel sensor when it is sending, GPS automatically otherwise.
+        val speed = SensorHub.bestSpeed()
+        b.speedValue.text = speed?.let { String.format(Locale.US, "%.1f", it.value) } ?: "--"
+        b.speedSource.text = when {
+            speed == null -> "no data"
+            speed.link == Link.GPS -> "GPS (no sensor data) · ${speed.deviceName}"
+            else -> "${if (speed.link == Link.ANT) "ANT+" else "BT"} · ${speed.deviceName}"
+        }
+        val gps = SensorHub.current(Metric.GPS_SPEED)
+        b.gpsLine.text = when {
+            !Sensors.gps.isRunning -> "GPS: off (allow location to enable)"
+            gps == null -> "GPS: waiting for fix…"
+            else -> String.format(Locale.US, "GPS: %.1f km/h · %s", gps.value, gps.deviceName)
+        }
         show(Metric.CADENCE, 0, b.cadenceValue, b.cadenceSource)
         b.distanceValue.text = String.format(Locale.US, "%.2f km", SensorHub.distanceMeters / 1000)
         b.statusText.text = SensorHub.statusText()
@@ -175,10 +192,21 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun hasLocationPermission() =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+
+    private fun startGpsIfAllowed() {
+        if (hasLocationPermission()) Sensors.gps.start()
+    }
+
     private fun requestNeededPermissions() {
+        startGpsIfAllowed()
         val wanted = blePermissions().toMutableList()
+        wanted += Manifest.permission.ACCESS_FINE_LOCATION
+        wanted += Manifest.permission.ACCESS_COARSE_LOCATION
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) wanted += Manifest.permission.POST_NOTIFICATIONS
-        val missing = wanted.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
+        val missing = wanted.distinct().filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
         if (missing.isEmpty()) {
             if (!didAutoReconnect) {
                 didAutoReconnect = true
