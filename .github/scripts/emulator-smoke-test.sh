@@ -24,10 +24,19 @@ check_alive() {
     echo "::error::[$stage] app process is not running"
     FAILED=1
   fi
-  if adb logcat -d | grep -E "FATAL EXCEPTION|ANR in $PKG" -A 25 | grep -q .; then
-    echo "::error::[$stage] crash or ANR found in logcat:"
-    adb logcat -d | grep -E "FATAL EXCEPTION|ANR in $PKG" -A 25 | head -60
+  # Only crashes of THIS app count (old emulator images sometimes crash their own System UI).
+  if adb logcat -d | grep -A 2 "FATAL EXCEPTION" | grep -q "Process: $PKG,"; then
+    echo "::error::[$stage] app crashed:"
+    adb logcat -d | grep -A 30 "FATAL EXCEPTION" | grep -A 28 "Process: $PKG," | head -60
     FAILED=1
+  fi
+  if adb logcat -d | grep -q "ANR in $PKG"; then
+    echo "::error::[$stage] app froze (ANR):"
+    adb logcat -d | grep -A 20 "ANR in $PKG" | head -40
+    FAILED=1
+  fi
+  if adb logcat -d | grep -A 2 "FATAL EXCEPTION" | grep "Process:" | grep -vq "Process: $PKG,"; then
+    echo "::warning::[$stage] another process crashed on the emulator (not this app), ignored"
   fi
 }
 
